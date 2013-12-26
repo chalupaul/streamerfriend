@@ -10,8 +10,11 @@ base_url = lambda{|region| "https://prod.api.pvp.net/api/lol/#{region}/v1.2/"}
 def do_help()
   str = <<-EOS
   Usage:
-  leaguefriend <summoner name> <region>
+  leaguefriend <summoner name> <region> <outputdir>
+
   Valid values for <region> are: euw, eune, na, tr, ru, oce, las, lan, br
+  
+  Any directory you specify to <outputdir> must already exist.
   
   You must put your mashape api key in the RIOT_API_KEY environment variable.
 
@@ -22,20 +25,21 @@ def do_help()
   str
 end
 
-if ARGV.length != 2 or ENV['RIOT_API_KEY'] == nil
+if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
   $stderr.puts do_help()
   exit 1
 end
 
-summoner_name = ARGV[0]
-region = ARGV[1].downcase
+$summoner_name = ARGV[0]
+$region = ARGV[1].downcase
+$output_dir = ARGV[2]
 
 # First we get our summoner info
-url = base_url.call(region) + "summoner/by-name/#{summoner_name}"
+url = base_url.call($region) + "summoner/by-name/#{$summoner_name}"
 begin
   summoner = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
 rescue => e
-  $stderr.puts "Unable to get any info on summoner: #{summoner_name} on region: #{region}."
+  $stderr.puts "Unable to get any info on summoner: #{$summoner_name} on region: #{$region}."
   exit 1
 end
 
@@ -67,12 +71,12 @@ def process_name(name)
   tmp_name
 end
 
-url = base_url.call(region) + "summoner/#{summoner['id']}/runes"
+url = base_url.call($region) + "summoner/#{summoner['id']}/runes"
 begin
   runes = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
   #runes = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
 rescue => e
-  $stderr.puts "Unable to retrieve runes for summoner: #{summoner_name} on region: #{region}."
+  $stderr.puts "Unable to retrieve runes for summoner: #{$summoner_name} on region: #{$region}."
   exit 1
 end
 runes_by_color = {:red => {}, :blue => {}, :yellow => {}, :quint => {}}
@@ -91,12 +95,12 @@ runes['pages'].each do |page|
   end
 end
 
-url = base_url.call(region) + "summoner/#{summoner['id']}/masteries"
+url = base_url.call($region) + "summoner/#{summoner['id']}/masteries"
 begin
   masteries = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
   #masteries = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
 rescue => e
-  $stderr.puts "Unable to retrieve masteries for summoner: #{summoner_name} on region: #{region}."
+  $stderr.puts "Unable to retrieve masteries for summoner: #{$summoner_name} on $region: #{$region}."
   exit 1
 end
 trees = {
@@ -179,15 +183,20 @@ masteries['pages'].each { |page|
   end
 }
 
-rstr = [:red, :yellow, :blue, :quint].collect{ |color|
+[:red, :yellow, :blue, :quint].each{ |color|
   runes = runes_by_color[color]
   if runes.length == 1
-    runes.map{|k,v| "#{v[:name]} #{color.to_s.pluralize.capitalize}" }
+    out_line = runes.map{|k,v| "#{v[:name]} #{color.to_s.pluralize.capitalize}" }[0]
   else
-    runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"
+    out_line = runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"[0]
   end
+  f = File.open(File.join($output_dir, "#{color.to_s}.txt"), 'w')
+  f.write out_line
+  f.close
 }
 
-puts rstr.join("\n")
-puts "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}  (\"#{mastery_page_name}\" mastery page)"
+#puts rstr.join("\n")
+f = File.open(File.join($output_dir, "mastery.txt"), 'w')
+f.write "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}  (\"#{mastery_page_name}\" mastery page)"
+f.close
 
