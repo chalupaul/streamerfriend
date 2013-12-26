@@ -191,12 +191,16 @@ masteries['pages'].each { |page|
     out_line = runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"[0]
   end
   f = File.open(File.join($output_dir, "#{color.to_s}.txt"), 'w')
+  f.write("<xsplit>")
   f.write out_line
+  f.write("</xsplit>")
   f.close
 }
 
 #puts rstr.join("\n")
 f = File.open(File.join($output_dir, "mastery.txt"), 'w')
+f.write("<xsplit>")
 f.write "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}  (\"#{mastery_page_name}\" mastery page)"
+f.write("</xsplit>")
 f.close
 
