@@ -187,5 +187,7 @@ rstr = [:red, :yellow, :blue, :quint].collect{ |color|
     runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"
   end
 }
+puts "<xsplit>"
 puts rstr.join("\n")
 puts "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}  (\"#{mastery_page_name}\" mastery page)"
+puts "</xsplit>"
