@@ -219,7 +219,7 @@ def write_mastery(file, contents)
   f.write "</xsplit>"
   f.close
 end
-write_mastery "mastery1.txt", "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
-write_mastery "mastery2.txt", "(\"#{mastery_page_name}\" mastery page)"
+write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
+write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" mastery page)"
 
 
