@@ -25,30 +25,6 @@ def do_help()
   str
 end
 
-if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
-  $stderr.puts do_help()
-  exit 1
-end
-
-$summoner_name = ARGV[0]
-$region = ARGV[1].downcase
-$output_dir = ARGV[2]
-
-# First we get our summoner info
-url = base_url.call($region) + "summoner/by-name/#{$summoner_name}"
-begin
-  summoner = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
-rescue => e
-  $stderr.puts "Unable to get any info on summoner: #{$summoner_name} on region: #{$region}."
-  exit 1
-end
-
-# Now runes
-reds = (1..9).to_a
-yellows = (10..18).to_a
-blues = (19..27).to_a
-quints = (28..30).to_a
-
 def process_name(name)
   subs = {
     :"Magic Resist" => :MR,
@@ -71,38 +47,6 @@ def process_name(name)
   tmp_name
 end
 
-url = base_url.call($region) + "summoner/#{summoner['id']}/runes"
-begin
-  runes = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
-  #runes = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
-rescue => e
-  $stderr.puts "Unable to retrieve runes for summoner: #{$summoner_name} on region: #{$region}."
-  exit 1
-end
-runes_by_color = {:red => {}, :blue => {}, :yellow => {}, :quint => {}}
-runes['pages'].each do |page|
-  if page.keys.include?('slots') && page['current'] == true
-    page['slots'].each do |slot|
-      id = slot['rune']['id']
-      color = reds.include?(slot['runeSlotId']) ? 'red' : yellows.include?(slot['runeSlotId']) ? 'yellow' : blues.include?(slot['runeSlotId']) ? 'blue' : 'quint'
-      name = process_name(slot['rune']['name'])
-      if !runes_by_color[:red].keys.include?(id) && !runes_by_color[:yellow].keys.include?(id) && !runes_by_color[:blue].keys.include?(id) && !runes_by_color[:quint].keys.include?(id)
-        runes_by_color[color.to_sym][id] = {:name => name, :count => 1}
-      else
-        runes_by_color[color.to_sym][id][:count] += 1
-      end
-    end
-  end
-end
-
-url = base_url.call($region) + "summoner/#{summoner['id']}/masteries"
-begin
-  masteries = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
-  #masteries = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
-rescue => e
-  $stderr.puts "Unable to retrieve masteries for summoner: #{$summoner_name} on $region: #{$region}."
-  exit 1
-end
 trees = {
   "offensive" => [
     "Double-Edged Sword",
@@ -168,6 +112,76 @@ trees = {
     "Wanderer"
   ]
 }
+
+if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
+  $stderr.puts do_help()
+  exit 1
+end
+
+$summoner_name = ARGV[0]
+$region = ARGV[1].downcase
+$output_dir = ARGV[2]
+
+url = "http://www.lolskill.net/game-NA-#{$summoner_name}"
+game_status = !(RestClient.get(url).include?("No Active Game Found"))
+
+if game_status == false
+  [:red, :yellow, :blue, :quint, :mastery].each{ |f|
+    File.truncate(File.join(File.join($output_dir, "#{f.to_s}.txt")), 0)
+  }
+  exit 0
+end
+
+# First we get our summoner info
+url = base_url.call($region) + "summoner/by-name/#{$summoner_name}"
+begin
+  summoner = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
+rescue => e
+  $stderr.puts "Unable to get any info on summoner: #{$summoner_name} on region: #{$region}."
+  exit 1
+end
+
+# Now runes
+reds = (1..9).to_a
+yellows = (10..18).to_a
+blues = (19..27).to_a
+quints = (28..30).to_a
+
+
+
+url = base_url.call($region) + "summoner/#{summoner['id']}/runes"
+begin
+  runes = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
+  #runes = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
+rescue => e
+  $stderr.puts "Unable to retrieve runes for summoner: #{$summoner_name} on region: #{$region}."
+  exit 1
+end
+runes_by_color = {:red => {}, :blue => {}, :yellow => {}, :quint => {}}
+runes['pages'].each do |page|
+  if page.keys.include?('slots') && page['current'] == true
+    page['slots'].each do |slot|
+      id = slot['rune']['id']
+      color = reds.include?(slot['runeSlotId']) ? 'red' : yellows.include?(slot['runeSlotId']) ? 'yellow' : blues.include?(slot['runeSlotId']) ? 'blue' : 'quint'
+      name = process_name(slot['rune']['name'])
+      if !runes_by_color[:red].keys.include?(id) && !runes_by_color[:yellow].keys.include?(id) && !runes_by_color[:blue].keys.include?(id) && !runes_by_color[:quint].keys.include?(id)
+        runes_by_color[color.to_sym][id] = {:name => name, :count => 1}
+      else
+        runes_by_color[color.to_sym][id][:count] += 1
+      end
+    end
+  end
+end
+
+url = base_url.call($region) + "summoner/#{summoner['id']}/masteries"
+begin
+  masteries = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
+  #masteries = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
+rescue => e
+  $stderr.puts "Unable to retrieve masteries for summoner: #{$summoner_name} on $region: #{$region}."
+  exit 1
+end
+
 counts = {'offensive' => 0, 'defensive' => 0, 'utility' => 0}
 mastery_page_name = ''
 masteries['pages'].each { |page|
