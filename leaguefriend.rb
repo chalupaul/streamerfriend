@@ -212,9 +212,14 @@ masteries['pages'].each { |page|
 }
 
 #puts rstr.join("\n")
-f = File.open(File.join($output_dir, "mastery.txt"), 'w')
-f.write("<xsplit>")
-f.write "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}  (\"#{mastery_page_name}\" mastery page)"
-f.write("</xsplit>")
-f.close
+def write_mastery(file, contents)
+  f = File.open(file, 'w')
+  f.write "<xsplit>"
+  f.write contents
+  f.write "</xsplit>"
+  f.close
+end
+write_mastery "mastery1.txt", "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
+write_mastery "mastery2.txt", "(\"#{mastery_page_name}\" mastery page)"
+
 
