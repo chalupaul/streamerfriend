@@ -126,7 +126,7 @@ url = "http://www.lolskill.net/game-NA-#{$summoner_name}"
 game_status = !(RestClient.get(url).include?("No Active Game Found"))
 
 if game_status == false
-  [:red, :yellow, :blue, :quint, :mastery].each{ |f|
+  [:red, :yellow, :blue, :quint, :mastery1, :mastery2].each{ |f|
     File.truncate(File.join(File.join($output_dir, "#{f.to_s}.txt")), 0)
   }
   exit 0
