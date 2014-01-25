@@ -119,10 +119,10 @@ if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
 end
 
 $summoner_name = ARGV[0]
-$region = ARGV[1].upcase
+$region = ARGV[1].downcase
 $output_dir = ARGV[2]
 
-url = "http://www.lolskill.net/game-#{$region}-#{$summoner_name}"
+url = "http://www.lolskill.net/game-#{$region.upcase}-#{$summoner_name}"
 game_status = !(RestClient.get(url).include?("No Active Game Found"))
 
 if game_status == false
