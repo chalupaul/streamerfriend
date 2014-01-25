@@ -119,10 +119,10 @@ if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
 end
 
 $summoner_name = ARGV[0]
-$region = ARGV[1].downcase
+$region = ARGV[1].upcase
 $output_dir = ARGV[2]
 
-url = "http://www.lolskill.net/game-NA-#{$summoner_name}"
+url = "http://www.lolskill.net/game-#{$region}-#{$summoner_name}"
 game_status = !(RestClient.get(url).include?("No Active Game Found"))
 
 if game_status == false
@@ -197,6 +197,8 @@ masteries['pages'].each { |page|
   end
 }
 
+$texts = ''
+
 [:red, :yellow, :blue, :quint].each{ |color|
   runes = runes_by_color[color]
   if runes.length == 1
@@ -205,6 +207,7 @@ masteries['pages'].each { |page|
     out_line = runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"[0]
   end
   f = File.open(File.join($output_dir, "#{color.to_s}.txt"), 'w')
+  $texts << out_line
   f.write("<xsplit>")
   f.write out_line
   f.write("</xsplit>")
@@ -213,6 +216,7 @@ masteries['pages'].each { |page|
 
 #puts rstr.join("\n")
 def write_mastery(file, contents)
+  $texts << contents
   f = File.open(file, 'w')
   f.write "<xsplit>"
   f.write contents
@@ -221,5 +225,9 @@ def write_mastery(file, contents)
 end
 write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
 write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" mastery page)"
+
+max_len = $texts.group_by(&:size).max.first
+text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
+puts text
 
 
