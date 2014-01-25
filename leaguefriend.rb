@@ -3,7 +3,7 @@ require 'json'
 require 'yaml'
 require 'rest_client'
 require 'active_support/inflector'
-require 'rmagick'
+require 'RMagick'
 include Magick
 
 base_url = lambda{|region| "https://prod.api.pvp.net/api/lol/#{region}/v1.2/"}
