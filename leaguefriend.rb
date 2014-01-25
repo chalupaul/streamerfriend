@@ -241,7 +241,7 @@ watermark_text.annotate(canvas, 0,0,0,0, text) do
   self.font = "Courier"
   self.fill = 'white'
   self.stroke = "none"
-  self.align = 'RightAlign'
+  self.align = RightAlign
 end
 canvas.write(File.join($output_dir, 'overlay.png'))
 
