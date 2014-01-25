@@ -197,7 +197,7 @@ masteries['pages'].each { |page|
   end
 }
 
-$texts = ''
+$texts = []
 
 [:red, :yellow, :blue, :quint].each{ |color|
   runes = runes_by_color[color]
