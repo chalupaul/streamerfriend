@@ -206,7 +206,7 @@ $texts = []
   if runes.length == 1
     out_line = runes.map{|k,v| "#{v[:name]} #{color.to_s.pluralize.capitalize}" }[0]
   else
-    out_line = runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"[0]
+    out_line = runes.collect{|k,v| "#{v[:count]}x #{v[:name]}"}.join(", ") + " #{color.to_s.pluralize.capitalize}"
   end
   f = File.open(File.join($output_dir, "#{color.to_s}.txt"), 'w')
   $texts << out_line
@@ -226,7 +226,7 @@ def write_mastery(file, contents)
   f.close
 end
 write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
-write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" mastery page)"
+write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" masteries)"
 
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
