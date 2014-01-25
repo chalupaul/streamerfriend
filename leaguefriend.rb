@@ -3,6 +3,8 @@ require 'json'
 require 'yaml'
 require 'rest_client'
 require 'active_support/inflector'
+require 'rmagick'
+include Magick
 
 base_url = lambda{|region| "https://prod.api.pvp.net/api/lol/#{region}/v1.2/"}
 
@@ -228,6 +230,17 @@ write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\"
 
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
-puts text
+
+canvas = Image.new(400, 70) do |c|
+  c.background_color= "Transparent"
+end
+watermark_text.annotate(canvas, 0,0,0,0, text) do
+  self.gravity = WestGravity
+  self.pointsize = 10
+  self.font = "ariel.ttf"
+  self.fill = 'white'
+  self.stroke = "none"
+end
+canvas.write(File.join($output_dir, 'overlay.png'))
 
 
