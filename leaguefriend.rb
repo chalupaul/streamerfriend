@@ -234,6 +234,7 @@ text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
 canvas = Image.new(400, 70) do |c|
   c.background_color= "Transparent"
 end
+watermark_text = Draw.new
 watermark_text.annotate(canvas, 0,0,0,0, text) do
   self.gravity = WestGravity
   self.pointsize = 10
