@@ -231,7 +231,7 @@ write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
 
-canvas = Image.new(400, 70) do |c|
+canvas = Image.new(400, 85) do |c|
   c.background_color= "Transparent"
 end
 watermark_text = Draw.new
