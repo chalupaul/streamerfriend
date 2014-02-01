@@ -230,7 +230,7 @@ write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
 f = File.open(File.join($output_dir, "overlay.html"), 'w')
-f.write "<html><body>#{text.gsub(/\n/, "<br />\n")}</body></html>"
+f.write "<html><body><font color='white'>#{text.gsub(/\n/, "<br />\n")}</font></body></html>"
 f.close
 
 canvas = Image.new(400, 85) do |c|
@@ -241,7 +241,7 @@ watermark_text.annotate(canvas, 0,0,398,0, text) do
   self.gravity = WestGravity
   self.pointsize = 10
   self.font = "Courier-Bold"
-  self.fill = 'black'
+  self.fill = 'white'
   self.stroke = "none"
   self.align = RightAlign
 end
