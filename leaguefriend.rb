@@ -230,7 +230,7 @@ write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
 f = File.open(File.join($output_dir, "overlay.html"), 'w')
-f.write "<html><head><meta http-equiv="refresh" content="20" /></head><body><p style=\"text-align:right;color:white\">#{text.gsub(/\n/, "<br />\n")}</p></body></html>"
+f.write "<html><head><meta http-equiv=\"refresh\" content="20" /></head><body><p style=\"text-align:right;color:white\">#{text.gsub(/\n/, "<br />\n")}</p></body></html>"
 f.close
 
 canvas = Image.new(400, 85) do |c|
