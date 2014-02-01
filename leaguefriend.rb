@@ -215,7 +215,6 @@ $texts = []
   f.write("</xsplit>")
   f.close
 }
-puts $texts
 
 #puts rstr.join("\n")
 def write_mastery(file, contents)
@@ -230,8 +229,8 @@ write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{
 #write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" masteries)"
 
 max_len = $texts.group_by(&:size).max.first
-text = $texts.join"\n"
-#text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
+text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
+puts text
 
 canvas = Image.new(400, 85) do |c|
   c.background_color= "Transparent"
