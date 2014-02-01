@@ -226,7 +226,7 @@ def write_mastery(file, contents)
   f.close
 end
 write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
-write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" masteries)"
+#write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" masteries)"
 
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
