@@ -132,7 +132,7 @@ if game_status == false
     File.truncate(File.join(File.join($output_dir, "#{f.to_s}.txt")), 0)
   }
   f = File.open(File.join($output_dir, "overlay.html"), 'w')
-  f.write "<html><head><meta http-equiv=\"refres\h" content=\"20\" /></head><body></body></html>"
+  f.write "<html><head><meta http-equiv=\"refresh\" content=\"20\" /></head><body></body></html>"
   f.close
   exit 0
 end
