@@ -238,7 +238,7 @@ end
 watermark_text = Draw.new
 watermark_text.annotate(canvas, 0,0,398,0, text) do
   self.gravity = WestGravity
-  self.pointsize = 14
+  self.pointsize = 10
   self.font = "Courier-Bold"
   self.fill = 'black'
   self.stroke = "none"
