@@ -216,7 +216,6 @@ $texts = []
   f.close
 }
 
-#puts rstr.join("\n")
 def write_mastery(file, contents)
   $texts << contents
   f = File.open(file, 'w')
@@ -230,7 +229,9 @@ write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{
 
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
-puts text
+f = File.open(File.join($output_dir, "overlay.html"), 'w')
+f.write "<html><body>#{text}</body></html>"
+f.close
 
 canvas = Image.new(400, 85) do |c|
   c.background_color= "Transparent"
