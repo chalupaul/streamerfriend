@@ -215,6 +215,7 @@ $texts = []
   f.write("</xsplit>")
   f.close
 }
+puts $texts
 
 #puts rstr.join("\n")
 def write_mastery(file, contents)
