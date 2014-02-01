@@ -131,6 +131,9 @@ if game_status == false
   [:red, :yellow, :blue, :quint, :mastery1, :mastery2].each{ |f|
     File.truncate(File.join(File.join($output_dir, "#{f.to_s}.txt")), 0)
   }
+  f = File.open(File.join($output_dir, "overlay.html"), 'w')
+  f.write "<html><body></body></html>"
+  f.close
   exit 0
 end
 
