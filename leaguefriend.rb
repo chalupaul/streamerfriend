@@ -6,7 +6,8 @@ require 'active_support/inflector'
 require 'RMagick'
 include Magick
 
-base_url = lambda{|region| "https://prod.api.pvp.net/api/lol/#{region}/v1.2/"}
+base_url = lambda{|region| "https://prod.api.pvp.net/api/lol/#{region}/v1.4/"}
+static_url = lambda {|region| "https://prod.api.pvp.net/api/lol/static-data/#{region}/v1.2/"}
 
 
 def do_help()
@@ -30,10 +31,14 @@ end
 def process_name(name)
   subs = {
     :"Magic Resist" => :MR,
+    :"Critical Damage" => :"Crit dmg",
+    :"Attack Speed" => :AS,
+    :"Mana Regeneration" => :"MP5",
     :"Cooldown Reduction" => :CDR,
     :"Ability Power" => :AP,
     :"Attack Damage" => :AD,
-    :"Health Regeneration" => :"HP Regen",
+    :"Health Regeneration" => :"HP5",
+    :"Health" => :HP,
     :"Movement Speed" => :MS,
     :Gold => :GP10,
     :Penetration => :Pen
@@ -48,72 +53,6 @@ def process_name(name)
   }
   tmp_name
 end
-
-trees = {
-  "offensive" => [
-    "Double-Edged Sword",
-    "Fury",
-    "Sorcery",
-    "Butcher",
-    "Expose Weakness",
-    "Brute Force",
-    "Mental Force",
-    "Feast",
-    "Spell Weaving",
-    "Martial Mastery",
-    "Arcane Mastery",
-    "Executioner",
-    "Blade Weaving",
-    "Warlord",
-    "Archmage",
-    "Dangerous Game",
-    "Frenzy",
-    "Devastating Strikes",
-    "Arcane Blade",
-    "Havoc"
-  ],
-  "defensive" => [
-    "Block",
-    "Recovery",
-    "Enchanted Armor",
-    "Tough Skin",
-    "Unyielding",
-    "Veteran's Scars",
-    "Bladed Armor",
-    "Oppression",
-    "Juggernaut",
-    "Hardiness",
-    "Resistance",
-    "Perseverance",
-    "Swiftness",
-    "Reinforced Armor",
-    "Evasive",
-    "Second Wind",
-    "Legendary Guardian",
-    "Runic Blessing",
-    "Tenacious"
-  ],
-  "utility" => [
-    "Phasewalker",
-    "Fleet of Foot",
-    "Meditation",
-    "Scout",
-    "Summoner's Insight",
-    "Strength of Spirit",
-    "Alchemist",
-    "Greed",
-    "Runic Affinity",
-    "Vampirism",
-    "Culinary Master",
-    "Scavenger",
-    "Wealth",
-    "Expanded Mind",
-    "Inspiration",
-    "Bandit",
-    "Intelligence",
-    "Wanderer"
-  ]
-}
 
 if ARGV.length != 3 or ENV['RIOT_API_KEY'] == nil or !File.directory?(ARGV[2])
   $stderr.puts do_help()
@@ -140,7 +79,7 @@ end
 # First we get our summoner info
 url = base_url.call($region) + "summoner/by-name/#{$summoner_name}"
 begin
-  summoner = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
+  summoner = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})[$summoner_name]
 rescue => e
   $stderr.puts "Unable to get any info on summoner: #{$summoner_name} on region: #{$region}."
   exit 1
@@ -157,20 +96,18 @@ quints = (28..30).to_a
 url = base_url.call($region) + "summoner/#{summoner['id']}/runes"
 begin
   runes = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
-  #runes = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
 rescue => e
   $stderr.puts "Unable to retrieve runes for summoner: #{$summoner_name} on region: #{$region}."
   exit 1
 end
 runes_by_color = {:red => {}, :blue => {}, :yellow => {}, :quint => {}}
-runes['pages'].each do |page|
+runes["#{summoner['id']}"]['pages'].each do |page|
   if page.keys.include?('slots') && page['current'] == true
     page['slots'].each do |slot|
-      id = slot['rune']['id']
+      id = slot['runeId']
       color = reds.include?(slot['runeSlotId']) ? 'red' : yellows.include?(slot['runeSlotId']) ? 'yellow' : blues.include?(slot['runeSlotId']) ? 'blue' : 'quint'
-      name = process_name(slot['rune']['name'])
       if !runes_by_color[:red].keys.include?(id) && !runes_by_color[:yellow].keys.include?(id) && !runes_by_color[:blue].keys.include?(id) && !runes_by_color[:quint].keys.include?(id)
-        runes_by_color[color.to_sym][id] = {:name => name, :count => 1}
+        runes_by_color[color.to_sym][id] = {:name => nil, :count => 1}
       else
         runes_by_color[color.to_sym][id][:count] += 1
       end
@@ -178,23 +115,43 @@ runes['pages'].each do |page|
   end
 end
 
+
+# And masteries...
 url = base_url.call($region) + "summoner/#{summoner['id']}/masteries"
 begin
-  masteries = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
-  #masteries = RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}}
+  masteries = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})[summoner['id'].to_s]
 rescue => e
   $stderr.puts "Unable to retrieve masteries for summoner: #{$summoner_name} on $region: #{$region}."
   exit 1
 end
 
-counts = {'offensive' => 0, 'defensive' => 0, 'utility' => 0}
+url = static_url.call($region) + "mastery"
+begin
+  masteries_by_tree = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY'], "masteryListData" => "tree"}})['tree']
+rescue => e
+  $stderr.puts "Unable to retrieve masteries from static data api."
+  exit 1
+end
+
+# We just care about the tree -> [ids]
+counts = {'Offense' => 0, 'Defense' => 0, 'Utility' => 0}
+trees = {}
+counts.keys.each{ |tree_name|
+ trees[tree_name] = []
+  masteries_by_tree[tree_name].each{ |m|
+    m['masteryTreeItems'].each { |i|
+      trees[tree_name] << i['masteryId']
+    }
+  }
+}
+
 mastery_page_name = ''
 masteries['pages'].each { |page|
   if page['current'] == true
     mastery_page_name = page['name']
-    page['talents'].each { |talent|
+    page['masteries'].each { |talent|
       counts.keys.each{ |k|
-        if trees[k].include? talent['name']
+        if trees[k].include? talent['id']
           counts[k] += talent['rank']
         end
       }
@@ -206,6 +163,16 @@ $texts = []
 
 [:red, :yellow, :blue, :quint].each{ |color|
   runes = runes_by_color[color]
+  runes.each do |rune_id, rune_details|
+    begin
+      url = static_url.call($region) + "rune/#{rune_id}"
+      rune = JSON.parse(RestClient.get url, {:params => {"api_key" => ENV['RIOT_API_KEY']}})
+      runes[rune_id][:name] = process_name(rune['name'])
+    rescue => e
+      $stderr.puts "Unable to retrieve rune id #{rune_id} from static data api."
+      exit 1
+    end
+  end
   if runes.length == 1
     out_line = runes.map{|k,v| "#{v[:name]} #{color.to_s.pluralize.capitalize}" }[0]
   else
@@ -227,8 +194,8 @@ def write_mastery(file, contents)
   f.write "</xsplit>"
   f.close
 end
-write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['offensive']}/#{counts['defensive']}/#{counts['utility']}"
-#write_mastery File.join($output_dir, "mastery2.txt"), "(\"#{mastery_page_name}\" masteries)"
+write_mastery File.join($output_dir, "mastery1.txt"), "#{counts['Offense']}/#{counts['Defense']}/#{counts['Utility']}"
+
 
 max_len = $texts.group_by(&:size).max.first
 text = $texts.map{|t| sprintf("%#{max_len}s", t)}.join("\n")
@@ -251,3 +218,4 @@ end
 canvas.write(File.join($output_dir, 'overlay.png'))
 
 
+puts "run complete"
