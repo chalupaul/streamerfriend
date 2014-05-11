@@ -217,5 +217,3 @@ watermark_text.annotate(canvas, 0,0,398,0, text) do
 end
 canvas.write(File.join($output_dir, 'overlay.png'))
 
-
-puts "run complete"
